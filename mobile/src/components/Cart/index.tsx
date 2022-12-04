@@ -19,15 +19,17 @@ import {
 import { Product } from '../../types/Product';
 import { OrderConfirmedModal } from '../OrderConfirmedModal';
 import { useState } from 'react';
+import { api } from '../../utils/api';
 
 interface CartProps {
   cartItems: CartItem[];
   onAdd: (product: Product) => void;
   onDecrement: (product: Product) => void;
   onConfirmOrder: () => void;
+  selectedTable: string
 }
 
-export function Cart({cartItems, onAdd, onDecrement, onConfirmOrder}: CartProps) {
+export function Cart({cartItems, onAdd, onDecrement, onConfirmOrder, selectedTable}: CartProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -35,7 +37,18 @@ export function Cart({cartItems, onAdd, onDecrement, onConfirmOrder}: CartProps)
     return acc + cartItem.product.price * cartItem.quantity;
   }, 0);
 
-  function handleConfirmOrder() {
+  async function handleConfirmOrder() {
+    setIsLoading(true);
+
+    await api.post('/orders', {
+      table: selectedTable,
+      products: cartItems.map((cartItem) => ({
+        product: cartItem.product._id,
+        quantity: cartItem.quantity
+      }))
+    });
+
+    setIsLoading(false);
     setIsModalVisible(true);
   }
 
@@ -62,7 +75,7 @@ export function Cart({cartItems, onAdd, onDecrement, onConfirmOrder}: CartProps)
               <ProductContainer>
                 <Image
                   source={{
-                    uri: `http://192.168.0.108:3001/uploads/${cartITem.product.imagePath}`
+                    uri: `http://192.168.0.102:3001/uploads/${cartITem.product.imagePath}`
                   }}
                 />
 
